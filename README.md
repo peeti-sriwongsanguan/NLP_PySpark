@@ -1,11 +1,16 @@
-# Amazon Automotive Reviews Sentiment Analysis
+# Sentiment Analysis with PySpark and PyTorch
 
-# NLP_PySpark
-After trying TensorFlow and PyTorch, I want to utilize PySpark which is good for massive dataset
+# NLP_PySpark + PyTorch
+After trying TensorFlow and PyTorch, I want to utilize PySpark which is good for massive dataset. The project uses PySpark for efficient data preprocessing and PyTorch for building and training the deep learning models.
+
 
 ## Project Description
 
-This project performs sentiment analysis on Amazon Automotive product reviews using Apache Spark's MLlib. It classifies reviews as positive or negative based on the review text, demonstrating the use of distributed computing for natural language processing tasks.
+This project performs sentiment analysis on Amazon Automotive product reviews. It classifies reviews as positive or negative based on the review text, demonstrating the use of distributed computing for natural language processing tasks.
+my purpose is to implement and compare three deep learning models for the analysis:
+1. RNN LSTM
+2. CNN
+3. RNN LSTM + CNN
 
 ### Key Features:
 - Data preprocessing using PySpark
@@ -31,12 +36,33 @@ While TensorFlow and PyTorch are excellent choices for deep learning models, we 
 
 While deep learning models (like those built with TensorFlow or PyTorch) could potentially achieve higher accuracy for this task, the PySpark solution offers a good balance of performance, scalability, and simplicity, especially when dealing with large-scale text data.
 
+## Environment
+
+- Machine: MacBook with M3 Pro chip (MPS device used for GPU acceleration)
+- Python version: 3.9
+- Main libraries: PySpark 3.4.1, PyTorch 1.9.0+
+
+## Setup and Installation
+
+1. Clone the repository
+2. Create a virtual environment:
+   ```
+   conda create -n <environment name> python=3.9
+   conda activate <environment name>
+
+   ```
+3. Install the required packages:
+   ```
+   pip install -r requirements.txt
+   ```
+
 ## Requirements
 
 - Python 3.7+
 - PySpark 3.4.1
 - PyArrow 12.0.1
 - Java 8 or later
+- Torch
 
 ## Project Structure
 
@@ -57,24 +83,6 @@ amazon_reviews_sentiment/
 └── README.md
 ```
 
-## Setup and Running
-
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd amazon_reviews_sentiment
-   ```
-
-2. Create a virtual environment (optional but recommended):
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   ```
-
-3. Install the required packages:
-   ```
-   pip install -r requirements.txt
-   ```
 
 4. Ensure your `reviews_Automotive_5.json.gz` file is in the `data/` directory.
 
@@ -85,40 +93,79 @@ amazon_reviews_sentiment/
 
 ## Results
 
-After running the script, we obtained the following results:
 
-```
-load_and_preprocess_data took 2.25 seconds to run.
-split_data took 0.01 seconds to run.
-build_pipeline took 0.07 seconds to run.
-train_model took 5.67 seconds to run.
-evaluate_model took 1.05 seconds to run.
-Area Under ROC: 0.7517
-Accuracy: 0.8234
-main took 11.21 seconds to run.
-```
+After training with early stopping (maximum 10 epochs, patience of 3):
 
-### Performance Metrics:
-- **Area Under ROC**: 0.7517
-  - This indicates good discriminative ability of the model. A value above 0.7 is generally considered good for binary classification tasks.
-- **Accuracy**: 0.8234 (82.34%)
-  - This shows that our model correctly classified 82.34% of the reviews, which is a strong performance for sentiment analysis.
+1. RNN LSTM (Trained for 8 epochs):
+   - Train Loss: 0.0983, Train Acc: 0.9689
+   - Val Loss: 0.4567, Val Acc: 0.8515
+   - Test Loss: 0.3527, Test Accuracy: 0.8688
 
-### Execution Times:
-- Data loading and preprocessing: 2.25 seconds
-- Data splitting: 0.01 seconds
-- Pipeline building: 0.07 seconds
-- Model training: 5.67 seconds
-- Model evaluation: 1.05 seconds
-- Total execution time: 11.21 seconds
+2. CNN (Trained for 5 epochs):
+   - Train Loss: 0.0071, Train Acc: 0.9998
+   - Val Loss: 0.4333, Val Acc: 0.8704
+   - Test Loss: 0.3312, Test Accuracy: 0.8718
 
-These results demonstrate that our PySpark implementation provides both good predictive performance and efficient execution times, even on a local machine. The quick processing time showcases PySpark's ability to handle text processing and machine learning tasks effectively.
+3. RNN LSTM + CNN (Trained for 5 epochs):
+   - Train Loss: 0.0288, Train Acc: 0.9914
+   - Val Loss: 0.6986, Val Acc: 0.8352
+   - Test Loss: 0.3360, Test Accuracy: 0.8425
 
-## Future Improvements
+The training process took approximately 74.32 seconds to run.
 
-- Experiment with more advanced feature extraction techniques
-- Try different classification algorithms available in MLlib
-- Implement cross-validation for more robust model evaluation
-- Explore techniques for handling imbalanced datasets if necessary
-- Scale up to larger datasets and distributed computing environments to fully leverage PySpark's capabilities
 
+## Performance Comparison
+
+The following plot shows the training and validation accuracy and loss for all three models over the training epochs:
+
+![Model Comparison](image/model_comparison.png)
+
+### Observations from the plot:
+
+1. **Accuracy (left plot):**
+   - All models show improvement in both training and validation accuracy over time.
+   - The CNN model (green) shows the fastest increase in training accuracy, reaching near 100% quickly.
+   - The RNN LSTM model (blue) shows a more gradual increase in accuracy for both training and validation.
+   - The RNN LSTM + CNN model (red) shows a pattern similar to CNN but with slightly lower validation accuracy.
+
+2. **Loss (right plot):**
+   - All models show a decrease in both training and validation loss over time.
+   - The CNN model's training loss decreases very rapidly, almost reaching zero.
+   - The RNN LSTM model shows a more gradual decrease in both training and validation loss.
+   - The RNN LSTM + CNN model's loss decrease pattern is similar to CNN but with higher validation loss.
+
+3. **Overfitting:**
+   - The gap between training and validation metrics (especially for CNN and RNN LSTM + CNN) suggests some degree of overfitting.
+   - The RNN LSTM model seems to have the least overfitting, with training and validation metrics staying closer together.
+
+4. **Early Stopping:**
+   - The plots show where early stopping occurred for each model, as indicated by the end of each line.
+   - CNN and RNN LSTM + CNN stopped earlier than RNN LSTM, likely due to the early stopping mechanism detecting potential overfitting.
+
+These visualizations support our numerical results and provide insights into the learning dynamics of each model throughout the training process.
+
+
+## Key Takeaways
+
+1. All models achieved good performance, with test accuracies around 84-87%.
+2. The CNN model showed the fastest convergence and best performance, reaching near-perfect training accuracy by the 5th epoch. However, the gap between training and validation accuracy suggests some overfitting.
+3. The RNN LSTM model showed more stable performance, with less overfitting than the CNN model.
+4. The combined RNN LSTM + CNN model didn't outperform the individual models, suggesting that the additional complexity might not be beneficial for this task.
+5. Early stopping was effective in preventing overfitting, with all models stopping before the maximum number of epochs.
+6. The CNN model achieved the highest test accuracy, followed closely by the RNN LSTM model.
+
+## Note on TensorFlow vs. PyTorch
+
+Initially, we attempted to use TensorFlow for this project. However, we encountered persistent crashes related to protobuf compatibility issues on the M3 Mac. As a result, we switched to PyTorch, which provided better compatibility and performance on this hardware.
+
+It's worth noting that these issues might be specific to the M3 Mac architecture, and users with different hardware configurations might not encounter the same problems with TensorFlow.
+
+## Future Work
+
+1. Fine-tune hyperparameters for each model to potentially improve performance.
+2. Experiment with pre-trained word embeddings like Word2Vec or GloVe.
+3. Implement cross-validation for more robust evaluation.
+4. Explore attention mechanisms to potentially improve the RNN LSTM model.
+5. Analyze misclassified examples to gain insights for further improvements.
+6. Investigate ways to reduce overfitting in the CNN model.
+7. Experiment with different architectures for the combined RNN LSTM + CNN model to see if its performance can be improved.
