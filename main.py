@@ -21,7 +21,8 @@ from src.utils import timing_decorator
 MAX_SEQUENCE_LENGTH = 128
 EMBEDDING_DIM = 100
 BATCH_SIZE = 32
-EPOCHS = 5
+EPOCHS = 10
+EARLY_STOPPING_PATIENCE = 3
 
 
 def preprocess_data(spark, input_path):
@@ -108,6 +109,9 @@ class RNN_CNN(nn.Module):
 def train_model(model, train_loader, val_loader, criterion, optimizer, device):
     model.to(device)
     history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
+    best_val_loss = float('inf')
+    epochs_without_improvement = 0
+
     for epoch in range(EPOCHS):
         model.train()
         train_loss = 0
@@ -147,7 +151,21 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device):
         print(f'Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}')
         print(f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}')
 
-    return history
+        # Early stopping
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            epochs_without_improvement = 0
+            # Save the best model
+            torch.save(model.state_dict(), f'best_{model.__class__.__name__}_model.pt')
+        else:
+            epochs_without_improvement += 1
+            if epochs_without_improvement >= EARLY_STOPPING_PATIENCE:
+                print(f'Early stopping triggered after {epoch + 1} epochs')
+                break
+
+    # Load the best model
+    model.load_state_dict(torch.load(f'best_{model.__class__.__name__}_model.pt'))
+    return history, epoch + 1
 
 
 def plot_training_history(histories):
@@ -166,7 +184,8 @@ def plot_training_history(histories):
 
     fig.update_layout(height=600, width=1000, title_text="Model Comparison")
     fig.write_html("model_comparison.html")
-    print("Comparison plot saved as 'model_comparison.html'")
+    fig.write_image("image/model_comparison.png")
+    print("Comparison plots saved as 'model_comparison.html' and 'model_comparison.png'")
 
 
 @timing_decorator
@@ -225,10 +244,13 @@ def main():
 
     # Train models
     histories = {}
+    epochs_trained = {}
     for name, model in models.items():
         print(f"Training {name} model...")
         optimizer = optim.Adam(model.parameters())
-        histories[name] = train_model(model, train_loader, val_loader, criterion, optimizer, device)
+        history, epochs = train_model(model, train_loader, val_loader, criterion, optimizer, device)
+        histories[name] = history
+        epochs_trained[name] = epochs
 
     # Plot results
     plot_training_history(histories)
@@ -236,7 +258,7 @@ def main():
     # Print final results
     print("\nFinal Results:")
     for name, history in histories.items():
-        print(f"\n{name}:")
+        print(f"\n{name} (Trained for {epochs_trained[name]} epochs):")
         print(f"Train Loss: {history['train_loss'][-1]:.4f}, Train Acc: {history['train_acc'][-1]:.4f}")
         print(f"Val Loss: {history['val_loss'][-1]:.4f}, Val Acc: {history['val_acc'][-1]:.4f}")
 
