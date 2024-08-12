@@ -1,6 +1,6 @@
 # Sentiment Analysis with PySpark and PyTorch
 
-# NLP_PySpark + PyTorch
+# NLP using combination of PySpark and PyTorch
 After trying TensorFlow and PyTorch, I want to utilize PySpark which is good for massive dataset. The project uses PySpark for efficient data preprocessing and PyTorch for building and training the deep learning models.
 
 
@@ -84,7 +84,7 @@ amazon_reviews_sentiment/
 ```
 
 
-4. Ensure your `reviews_Automotive_5.json.gz` file is in the `data/` directory.
+4. Make sure your `reviews_Automotive_5.json.gz` file is in the `data/` directory.
 
 5. Run the main script:
    ```
@@ -142,7 +142,7 @@ The following plot shows the training and validation accuracy and loss for all t
    - The plots show where early stopping occurred for each model, as indicated by the end of each line.
    - CNN and RNN LSTM + CNN stopped earlier than RNN LSTM, likely due to the early stopping mechanism detecting potential overfitting.
 
-These visualizations support our numerical results and provide insights into the learning dynamics of each model throughout the training process.
+These visualizations support my numerical results and provide insights into the learning dynamics of each model throughout the training process.
 
 
 ## Key Takeaways
@@ -156,7 +156,7 @@ These visualizations support our numerical results and provide insights into the
 
 ## Note on TensorFlow vs. PyTorch
 
-Initially, we attempted to use TensorFlow for this project. However, we encountered persistent crashes related to protobuf compatibility issues on the M3 Mac. As a result, we switched to PyTorch, which provided better compatibility and performance on this hardware.
+Initially, I attempted to use TensorFlow for this project. However, I encountered persistent crashes related to protobuf compatibility issues on the M3 Mac. As a result, I switched to PyTorch, which provided better compatibility and performance on this machine.
 
 It's worth noting that these issues might be specific to the M3 Mac architecture, and users with different hardware configurations might not encounter the same problems with TensorFlow.
 
